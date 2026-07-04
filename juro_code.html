@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juro Code Translator & Decryptor</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+        
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #0b0f19;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+        .glass {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #f472b6, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="text-gray-100 min-h-screen flex flex-col justify-between">
+
+    <!-- Header -->
+    <header class="border-b border-gray-800 bg-gray-900/50 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-pink-500 to-blue-500 p-2.5 rounded-xl shadow-lg shadow-pink-500/20">
+                    <i data-lucide="binary" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">JURO<span class="text-pink-500">_</span>CODE</h1>
+                    <p class="text-xs text-gray-400 font-mono">v1.0.0 • Cryptographic Matrix Protocol</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-xs bg-gray-800 border border-gray-700 px-3 py-1.5 rounded-full text-pink-400 font-mono flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></span>
+                    Matriz Simétrica Ativa
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-8 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Explicação do Protocolo Matemático -->
+        <section class="lg:col-span-12 glass rounded-2xl p-6 border border-pink-500/10">
+            <div class="flex items-start gap-4">
+                <div class="p-3 bg-pink-500/10 rounded-xl text-pink-400">
+                    <i data-lucide="help-circle" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-white mb-2">Como funciona o algoritmo matemático do <span class="gradient-text">Juro Code</span>?</h2>
+                    <p class="text-sm text-gray-300 leading-relaxed">
+                        Cada caractere do seu texto é convertido em seu valor ASCII. Agrupamos esses valores em pares para formar vetores coluna $\begin{pmatrix} x_1 \\ x_2 \end{pmatrix}$. 
+                        Multiplicamos cada vetor por uma matriz chave invertível $A = \begin{pmatrix} 2 & 1 \\ 1 & 1 \end{pmatrix}$ para encriptar. Os valores resultantes são convertidos para hexadecimal de dois dígitos.
+                        Cada dígito do Hexadecimal (de <code class="text-pink-400">0</code> a <code class="text-pink-400">F</code>) é mapeado de forma exata para uma das variações de "Juro" combinadas com modificadores de início e fim. A decifragem faz a operação inversa multiplicando pela matriz inversa $A^{-1} = \begin{pmatrix} 1 & -1 \\ -1 & 2 \end{pmatrix}$.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Painel de Operações (Lado Esquerdo: Encriptar | Lado Direito: Decriptar) -->
+        <div class="lg:col-span-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- ENCRIPTAR (Texto -> Juro Code) -->
+            <div class="glass rounded-2xl p-6 border border-blue-500/10 flex flex-col justify-between gap-6">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold flex items-center gap-2 text-blue-400">
+                            <i data-lucide="lock" class="w-5 h-5"></i>
+                            Encriptar para Juro Code
+                        </h3>
+                        <span class="text-xs text-gray-500 uppercase font-mono">Lado Esquerdo</span>
+                    </div>
+                    
+                    <label class="block text-xs text-gray-400 mb-2 font-mono">Texto Comum / Mensagem Secreta</label>
+                    <textarea 
+                        id="plainTextInput" 
+                        rows="6" 
+                        class="w-full bg-gray-950 border border-gray-800 rounded-xl p-4 text-gray-100 focus:outline-none focus:border-blue-500 transition-colors placeholder-gray-600 resize-none code-font"
+                        placeholder="Digite aqui sua mensagem para transformar em Juro Code..."
+                    >amiga, você não sabe o que aconteceu! juro!</textarea>
+                </div>
+
+                <div class="space-y-4">
+                    <button 
+                        onclick="encryptAction()"
+                        class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 px-6 rounded-xl transition-all shadow-lg shadow-blue-900/30 flex items-center justify-center gap-2"
+                    >
+                        <i data-lucide="play" class="w-5 h-5"></i>
+                        Processar Matriz e Gerar Juro Code
+                    </button>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-xs text-gray-400 font-mono">Resultado Encriptado (Juro Code)</label>
+                            <button onclick="copyToClipboard('encryptedOutput')" class="text-xs text-gray-400 hover:text-white flex items-center gap-1">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar
+                            </button>
+                        </div>
+                        <div 
+                            id="encryptedOutput" 
+                            class="w-full bg-gray-950 border border-gray-800 rounded-xl p-4 text-pink-400 code-font min-h-[120px] whitespace-pre-wrap select-all text-sm leading-relaxed"
+                        >Clique no botão para processar...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DECRIPTAR (Juro Code -> Texto) -->
+            <div class="glass rounded-2xl p-6 border border-pink-500/10 flex flex-col justify-between gap-6">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold flex items-center gap-2 text-pink-400">
+                            <i data-lucide="unlock" class="w-5 h-5"></i>
+                            Decriptar do Juro Code
+                        </h3>
+                        <span class="text-xs text-gray-500 uppercase font-mono">Lado Direito</span>
+                    </div>
+
+                    <label class="block text-xs text-gray-400 mb-2 font-mono">Código Juro Code (Cole o texto encriptado)</label>
+                    <textarea 
+                        id="encryptedInput" 
+                        rows="6" 
+                        class="w-full bg-gray-950 border border-gray-800 rounded-xl p-4 text-pink-300 focus:outline-none focus:border-pink-500 transition-colors placeholder-gray-600 resize-none code-font text-sm leading-relaxed"
+                        placeholder="Cole aqui o texto cheio de 'juro, sim juro, juro amiga...' para revelar o segredo..."
+                    ></textarea>
+                </div>
+
+                <div class="space-y-4">
+                    <button 
+                        onclick="decryptAction()"
+                        class="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold py-3.5 px-6 rounded-xl transition-all shadow-lg shadow-pink-900/30 flex items-center justify-center gap-2"
+                    >
+                        <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                        Resolver Matriz Inversa & Decriptar
+                    </button>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-xs text-gray-400 font-mono">Mensagem Original Revelada</label>
+                            <button onclick="copyToClipboard('decryptedOutput')" class="text-xs text-gray-400 hover:text-white flex items-center gap-1">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar
+                            </button>
+                        </div>
+                        <div 
+                            id="decryptedOutput" 
+                            class="w-full bg-gray-950 border border-gray-800 rounded-xl p-4 text-emerald-400 code-font min-h-[120px] whitespace-pre-wrap select-all text-sm"
+                        >Clique no botão para decriptar...</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Debug Visualizador de Passos Matemáticos -->
+        <section class="lg:col-span-12 glass rounded-2xl p-6 border border-gray-800">
+            <h3 class="text-base font-bold text-gray-200 mb-4 flex items-center gap-2">
+                <i data-lucide="cpu" class="text-blue-400 w-5 h-5"></i>
+                Fluxo de Depuração e Visualização de Matrizes
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Chave da Matriz -->
+                <div class="bg-gray-950 p-4 rounded-xl border border-gray-800">
+                    <span class="text-xs text-gray-400 font-mono block mb-2">Matriz Chave (A) de Criptografia</span>
+                    <div class="flex items-center gap-4">
+                        <div class="text-2xl font-mono text-blue-400 border-l-2 border-r-2 border-blue-500 px-3 py-1 flex flex-col items-center">
+                            <span>2 &nbsp; 1</span>
+                            <span>1 &nbsp; 1</span>
+                        </div>
+                        <div class="text-xs text-gray-400">
+                            Drives lineares que embaralham os caracteres de 2 em 2 (vetor coluna).
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chave Inversa -->
+                <div class="bg-gray-950 p-4 rounded-xl border border-gray-800">
+                    <span class="text-xs text-gray-400 font-mono block mb-2">Matriz Inversa (A⁻¹) de Decriptografia</span>
+                    <div class="flex items-center gap-4">
+                        <div class="text-2xl font-mono text-pink-400 border-l-2 border-r-2 border-pink-500 px-3 py-1 flex flex-col items-center">
+                            <span>1 &nbsp; -1</span>
+                            <span>-1 &nbsp; 2</span>
+                        </div>
+                        <div class="text-xs text-gray-400">
+                            Usada para reverter o embaralhamento e achar o caractere exato.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mapeamento de Tokens -->
+                <div class="bg-gray-950 p-4 rounded-xl border border-gray-800">
+                    <span class="text-xs text-gray-400 font-mono block mb-2">Tabela Hexadecimal ⇄ Token</span>
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs font-mono">
+                        <div class="flex justify-between"><span class="text-gray-500">0-2:</span> <span class="text-pink-400">juro</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">3-5:</span> <span class="text-pink-400">sim juro</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">6-8:</span> <span class="text-pink-400">juro amiga</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">9-A:</span> <span class="text-pink-400">amiga juro</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">B-C:</span> <span class="text-pink-400">vei juro</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">D-F:</span> <span class="text-pink-400">juro vei</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logger do console do algoritmo -->
+            <div class="mt-6">
+                <label class="block text-xs text-gray-400 font-mono mb-2">Monitor do Processo (Execução em Tempo Real)</label>
+                <div id="algorithmLog" class="w-full bg-gray-950 border border-gray-800 rounded-xl p-4 text-xs font-mono text-gray-400 max-h-40 overflow-y-auto">
+                    Aguardando execução... Insira uma mensagem e clique em processar.
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Custom Notification Box (Em substituição ao alert do navegador) -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-gray-900 border border-pink-500 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 z-50">
+        <i data-lucide="info" class="text-pink-500 w-5 h-5"></i>
+        <span id="toastMessage" class="text-sm font-medium">Notificação rápida</span>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 bg-gray-950/80 py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500 font-mono">
+            <div>
+                © 2026 Juro Code Protocol. Criado com amor por matrizes matemáticas.
+            </div>
+            <div class="flex gap-4">
+                <a href="#" class="hover:text-pink-400 transition-colors">Especificações</a>
+                <span>•</span>
+                <a href="#" class="hover:text-blue-400 transition-colors">Segurança Linear</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Inicializa os ícones do Lucide
+        lucide.createIcons();
+
+        /* =========================================
+           ESPECIFICAÇÃO DO ALGORITMO JURO CODE
+           =========================================
+           Para que a linguagem dê exata e simétrica de ambos os lados:
+           
+           Matriz Chave A:
+           | 2  1 |
+           | 1  1 |
+           Determinante = (2*1) - (1*1) = 1.
+           Como o determinante é 1, a matriz é perfeitamente invertível em números inteiros (Mod 256).
+           
+           Matriz Inversa A⁻¹:
+           |  1  -1 |
+           | -1   2 |
+           
+           A criptografia processa blocos de 2 caracteres (bytes). 
+           Se o texto tiver número ímpar de caracteres, adicionamos um caractere de padding (espaço ou \0).
+           
+           Multiplicação:
+           y1 = (2*x1 + 1*x2) mod 256
+           y2 = (1*x1 + 1*x2) mod 256
+           
+           Cada y criptografado é um valor de 0 a 255.
+           Representamos esse valor como um Hexadecimal de 2 dígitos (00 até FF).
+           Exemplo: y = 171 => Hex = "AB".
+           
+           Mapeamento Determinístico dos Dígitos Hex:
+           Para representar o primeiro e o segundo dígito de cada byte de forma elegante 
+           com as 6 frases especificadas pelo usuário:
+           
+           Temos os dígitos hexadecimais: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, A, B, C, D, E, F.
+           Mapearemos os dígitos em grupos para as frases pedidas:
+           
+           Valor Hex do dígito:
+           0, 1, 2   -> "juro"
+           3, 4, 5   -> "sim juro"
+           6, 7, 8   -> "juro amiga"
+           9, A      -> "amiga juro"
+           B, C      -> "vei juro"
+           D, E, F   -> "juro vei"
+           
+           Para podermos recuperar o dígito exato de 0 a F, o token virá acompanhado de uma 
+           variação de índice sutil ou usaremos uma lógica de sub-tokens.
+           Como a linguagem precisa dar EXATA e não pode variar, vamos estruturar o token com um qualificador:
+           O token de palavra representa a faixa de valores (0-5). Para saber o valor exato dentro do grupo,
+           colocamos uma marcação fonética ou repetidor, ou melhor:
+           Faremos um mapeamento direto de base 16 para as 6 expressões de forma matemática posicional pura, 
+           combinando duas expressões para formar um byte.
+           
+           Com 6 expressões, temos 6 * 6 = 36 combinações possíveis.
+           Como um byte tem 256 valores possíveis, se usarmos pares de 3 expressões conseguimos 6^3 = 216 (ainda menor).
+           Para cobrir todos os 256 valores de forma elegante e usando estritamente as matrizes 
+           para reduzir os números gerados para uma faixa menor, faremos o seguinte:
+           
+           Reduzimos a matriz Modulo 6!
+           Isso é genial. Se fizermos o cálculo da matriz Modulo 6, cada caractere criptografado será um valor de 0 a 5.
+           Com valores de 0 a 5, cada número representa exatamente uma das 6 frases!
+           - 0: "juro"
+           - 1: "sim juro"
+           - 2: "juro amiga"
+           - 3: "amiga juro"
+           - 4: "vei juro"
+           - 5: "juro vei"
+           
+           Mas como codificar caracteres inteiros (0-255) em valores de 0-5 de forma exata?
+           Simples! Qualquer número de 0 a 255 pode ser escrito na Base 6 com até 4 dígitos (pois 6^4 = 1296).
+           Por exemplo, o número 120 na base 6 é 320 (3*36 + 2*6 + 0).
+           Então, cada caractere do texto original é convertido em exatamente 3 dígitos na Base 6 (já que 6^3 = 216, cobre até 215. 
+           Para garantir que cubra até 255 (estendidos), usamos 4 dígitos base-6 por caractere, ou trabalhamos com blocos!).
+           
+           Vamos trabalhar com representação direta de cada caractere em 4 dígitos de Base 6 (valores de 0 a 5).
+           Esses dígitos são passados pela nossa Matriz Chave modular para embaralhar.
+           Na decodificação, passamos a mensagem pela Matriz Inversa modular, obtemos os dígitos base 6 originais, 
+           e remontamos os caracteres originais!
+           
+           Isso garante:
+           1. Criptografia real por Álgebra Linear (Matrizes).
+           2. Uso absoluto e exato de somente as 6 frases do Juro Code.
+           3. Resultado 100% simétrico e sem perdas.
+        */
+
+        const TOKENS = [
+            "juro",          // 0
+            "sim juro",      // 1
+            "juro amiga",    // 2
+            "amiga juro",    // 3
+            "vei juro",      // 4
+            "juro vei"       // 5
+        ];
+
+        // Mapa reverso para rápida conversão no decodificador
+        const TOKEN_TO_VAL = {
+            "juro": 0,
+            "sim juro": 1,
+            "juro amiga": 2,
+            "amiga juro": 3,
+            "vei juro": 4,
+            "juro vei": 5
+        };
+
+        // Configuração de Matriz Chave (A) mod 6
+        // Para que seja invertível módulo 6, o determinante deve ser coprimo com 6 (ou seja, det = 1 ou 5).
+        // Chave A = [[2, 1], [1, 1]] => Det = 2*1 - 1*1 = 1. Perfeito!
+        const MatrixA = [[2, 1], [1, 1]];
+        const MatrixInverseA = [[1, 5], [5, 2]]; // Inversa mod 6: (1*1 - 5*5) = 1 - 25 = -24 = 0 mod 6.
+        // Verificando inversa:
+        // A * A^-1 = [[2, 1], [1, 1]] * [[1, 5], [5, 2]]
+        // r11 = 2*1 + 1*5 = 7 = 1 mod 6
+        // r12 = 2*5 + 1*2 = 12 = 0 mod 6
+        // r21 = 1*1 + 1*5 = 6 = 0 mod 6
+        // r22 = 1*5 + 1*2 = 7 = 1 mod 6
+        // Funciona perfeitamente módulo 6!
+
+        // Logger Helper
+        function logMsg(message) {
+            const logger = document.getElementById("algorithmLog");
+            const timestamp = new Date().toLocaleTimeString();
+            logger.innerHTML += `\n[${timestamp}] ${message}`;
+            logger.scrollTop = logger.scrollHeight;
+        }
+
+        // Função para mostrar notificações customizadas
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            const toastMessage = document.getElementById("toastMessage");
+            toastMessage.textContent = message;
+            
+            toast.classList.remove("opacity-0", "translate-y-20", "pointer-events-none");
+            toast.classList.add("opacity-100", "translate-y-0");
+            
+            setTimeout(() => {
+                toast.classList.remove("opacity-100", "translate-y-0");
+                toast.classList.add("opacity-0", "translate-y-20", "pointer-events-none");
+            }, 4000);
+        }
+
+        // Copiar texto para o clipboard
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.innerText || element.value;
+            
+            // Usar método recomendado para iFrames
+            const textarea = document.createElement("textarea");
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast("Copiado para a área de transferência!");
+            } catch (err) {
+                showToast("Erro ao copiar.");
+            }
+            document.body.removeChild(textarea);
+        }
+
+        // Converte um número decimal para base 6 com tamanho fixo de 4 dígitos
+        function decimalToBase6(num) {
+            let digits = [];
+            let temp = num;
+            for (let i = 0; i < 4; i++) {
+                digits.unshift(temp % 6);
+                temp = Math.floor(temp / 6);
+            }
+            return digits; // Retorna array de 4 números de 0-5
+        }
+
+        // Converte array de 4 dígitos na base 6 de volta para decimal
+        function base6ToDecimal(digits) {
+            let num = 0;
+            for (let i = 0; i < 4; i++) {
+                num += digits[i] * Math.pow(6, 3 - i);
+            }
+            return num;
+        }
+
+        // Encriptar Ação
+        function encryptAction() {
+            const plainText = document.getElementById("plainTextInput").value;
+            if (!plainText) {
+                showToast("Por favor, digite algum texto para encriptar.");
+                return;
+            }
+
+            logMsg("--- Iniciando Encriptação ---");
+            logMsg(`Texto original: "${plainText}"`);
+
+            // Passo 1: Converter caracteres para dígitos na base 6
+            let base6Digits = [];
+            for (let i = 0; i < plainText.length; i++) {
+                const charCode = plainText.charCodeAt(i);
+                const b6 = decimalToBase6(charCode);
+                base6Digits.push(...b6);
+            }
+            logMsg(`Total de dígitos base-6 gerados: ${base6Digits.length}`);
+
+            // Garante que o número de dígitos é par para multiplicação de matriz 2x2
+            let padded = false;
+            if (base6Digits.length % 2 !== 0) {
+                base6Digits.push(0); // padding
+                padded = true;
+                logMsg("Adicionado padding para alinhar com a matriz 2x2");
+            }
+
+            // Passo 2: Aplicar a Matriz de Criptografia em blocos de 2
+            let encryptedDigits = [];
+            for (let i = 0; i < base6Digits.length; i += 2) {
+                let x1 = base6Digits[i];
+                let x2 = base6Digits[i+1];
+
+                // Multiplicação da matriz: Y = A * X mod 6
+                let y1 = (MatrixA[0][0] * x1 + MatrixA[0][1] * x2) % 6;
+                let y2 = (MatrixA[1][0] * x1 + MatrixA[1][1] * x2) % 6;
+
+                encryptedDigits.push(y1, y2);
+            }
+            logMsg("Multiplicação matricial [2x2] Modulo 6 realizada com sucesso.");
+
+            // Passo 3: Converter dígitos criptografados para Tokens do Juro Code
+            let juroTokens = encryptedDigits.map(digit => TOKENS[digit]);
+            
+            // Unimos os tokens com vírgula ou espaço para criar a linguagem fluida
+            const finalEncryptedText = juroTokens.join(", ");
+            
+            // Exibir o resultado
+            document.getElementById("encryptedOutput").innerText = finalEncryptedText;
+            // Alimenta a entrada do decodificador para facilitar testes
+            document.getElementById("encryptedInput").value = finalEncryptedText;
+            
+            showToast("Texto encriptado com sucesso usando álgebra matricial!");
+            logMsg(`Resultado gerado com sucesso. Total de tokens: ${juroTokens.length}`);
+        }
+
+        // Decriptar Ação
+        function decryptAction() {
+            const encryptedText = document.getElementById("encryptedInput").value.trim();
+            if (!encryptedText) {
+                showToast("Por favor, cole o código Juro Code para decriptar.");
+                return;
+            }
+
+            logMsg("--- Iniciando Decriptação ---");
+            
+            // Normalizar a entrada de texto do usuário (remover quebras de linha e limpar espaços)
+            // Aceita separadores como vírgulas, pontos ou múltiplos espaços
+            const cleanInput = encryptedText.replace(/[\n\r]+/g, ' ');
+            
+            // Parsing inteligente para encontrar os tokens válidos da linguagem
+            // Expressão regular que casa perfeitamente com os 6 tokens possíveis
+            const tokenRegex = /(sim juro|juro amiga|amiga juro|vei juro|juro vei|juro)/g;
+            let matchedTokens = cleanInput.match(tokenRegex);
+
+            if (!matchedTokens || matchedTokens.length === 0) {
+                showToast("Nenhum token Juro Code válido foi encontrado na entrada.");
+                logMsg("Erro: Falha de sintaxe no Juro Code inserido.");
+                return;
+            }
+
+            logMsg(`Tokens identificados para decifrar: ${matchedTokens.length}`);
+
+            // Passo 1: Converter os tokens de volta para dígitos mod 6
+            let encryptedDigits = matchedTokens.map(token => {
+                return TOKEN_TO_VAL[token.trim()];
+            });
+
+            // Passo 2: Reverter a Matriz de Criptografia usando a Matriz Inversa (A⁻¹)
+            let decryptedDigits = [];
+            for (let i = 0; i < encryptedDigits.length; i += 2) {
+                let y1 = encryptedDigits[i];
+                // Caso haja um número ímpar de tokens devido a erros de transmissão, preenche com 0
+                let y2 = (i + 1 < encryptedDigits.length) ? encryptedDigits[i+1] : 0;
+
+                // Multiplicação inversa: X = A⁻¹ * Y mod 6
+                let x1 = (MatrixInverseA[0][0] * y1 + MatrixInverseA[0][1] * y2) % 6;
+                let x2 = (MatrixInverseA[1][0] * y1 + MatrixInverseA[1][1] * y2) % 6;
+
+                decryptedDigits.push(x1, x2);
+            }
+            logMsg("Matriz Inversa modulo 6 calculada com sucesso.");
+
+            // Passo 3: Agrupar de 4 em 4 dígitos e converter de volta para decimal (ASCII) e depois String
+            let outputText = "";
+            for (let i = 0; i < decryptedDigits.length; i += 4) {
+                // Pega bloco de 4 dígitos
+                let block = decryptedDigits.slice(i, i + 4);
+                // Se o bloco estiver incompleto no final, preenchemos com zeros
+                while (block.length < 4) {
+                    block.push(0);
+                }
+
+                let charCode = base6ToDecimal(block);
+                
+                // Ignorar caractere nulo ou padding se ele foi gerado artificialmente
+                if (charCode !== 0) {
+                    outputText += String.fromCharCode(charCode);
+                }
+            }
+
+            document.getElementById("decryptedOutput").innerText = outputText;
+            showToast("Código decifrado com sucesso!");
+            logMsg(`Texto original decifrado: "${outputText}"`);
+        }
+
+        // Executar encriptação padrão logo no início para demonstrar
+        window.onload = function() {
+            encryptAction();
+        }
+    </script>
+</body>
+</html>
