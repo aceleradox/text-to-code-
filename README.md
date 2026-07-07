@@ -4,7 +4,7 @@
 
 Imagine misturar matemática de nível universitário com uma camada de ofuscação de dados totalmente personalizada e divertida. Esse é o **Juro Code Translator**, um codificador e decodificador digital executado 100% no navegador.
 
-🔗 **[Experimente o Juro Code Translator Ao Vivo Agora!](https://github.io)**
+🔗 **[Experimente o Juro Code Translator Ao Vivo Agora!](https://aceleradox.github.io/text-to-code-/juro_code.html)**
 
 ---
 
