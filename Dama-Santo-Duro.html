@@ -757,18 +757,28 @@
 
             // Se uma jogada de captura em cadeia está pendente, o jogador só pode mover aquela peça específica
             if (forceContinueWith) {
+                // 1. Verificar primeiro se o clique foi em um destino de movimento de captura válido
+                const matchedMove = validMoves.find(m => m.row === row && m.col === col);
+                if (matchedMove) {
+                    executeMove(selectedPiece.row, selectedPiece.col, row, col, matchedMove);
+                    return;
+                }
+
+                // 2. Se clicar na própria peça ativa que está executando a cadeia, mantém ela selecionada
                 if (row === forceContinueWith.row && col === forceContinueWith.col) {
                     selectedPiece = { row, col };
                     validMoves = getValidMovesForCell(row, col).filter(m => m.type === 'capture');
                     renderBoard();
-                } else {
-                    showToast("Captura em andamento! Você deve continuar operando a peça destacada.", true);
-                    playSound('error');
+                    return;
                 }
+
+                // 3. Se clicar em qualquer outra casa inválida durante o combo de capturas
+                showToast("Captura em andamento! Você deve continuar operando a peça destacada.", true);
+                playSound('error');
                 return;
             }
 
-            // Selecionar nova peça
+            // Selecionar nova peça (fluxo normal sem cadeia de captura pendente)
             if (piece && piece.player === turn) {
                 selectedPiece = { row, col };
                 
