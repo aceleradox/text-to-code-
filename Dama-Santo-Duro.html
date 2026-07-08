@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mega Encoder de Damas 👑</title>
+    <!-- Tailwind CSS para um design elegante e responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@300;400;600;700;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Custom scrollbar para o painel de logs */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-100 flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header Principal -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg shadow-indigo-500/20">
+                    <!-- Ícone de Coroa em SVG -->
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        MEGA DAMAS CRYPTO-ENCODER
+                    </h1>
+                    <p class="text-xs text-slate-400">Transforme suas jogadas estratégicas em códigos "Santo Duro" criptografados</p>
+                </div>
+            </div>
+            
+            <!-- Turn Indicator & Peças Restantes -->
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 bg-slate-800/80 px-4 py-2 rounded-lg border border-slate-700/50">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Turno:</span>
+                    <span id="turn-badge" class="px-2.5 py-0.5 rounded text-xs font-bold bg-amber-500 text-slate-950 transition-all duration-300">
+                        Amiga (Vermelho)
+                    </span>
+                </div>
+                <button id="btn-sound" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition" title="Mudar Som">
+                    🔊 Som Ativo
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="max-w-7xl mx-auto p-4 lg:p-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch flex-grow">
+        
+        <!-- Coluna Esquerda: Tabuleiro de Jogo (Canvas) -->
+        <section class="lg:col-span-7 flex flex-col gap-4">
+            <!-- Estatísticas Rápidas do Jogo -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-gradient-to-r from-red-950/40 to-slate-900 border border-red-500/30 p-3 rounded-xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400 font-semibold">Peças Vermelhas (Amiga)</p>
+                        <p class="text-xl font-bold text-red-400" id="count-p1">12 / 12</p>
+                    </div>
+                    <div class="w-3 h-3 rounded-full bg-red-500 shadow-md shadow-red-500/50"></div>
+                </div>
+                <div class="bg-gradient-to-r from-blue-950/40 to-slate-900 border border-blue-500/30 p-3 rounded-xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400 font-semibold">Peças Azuis (Mano)</p>
+                        <p class="text-xl font-bold text-blue-400" id="count-p2">12 / 12</p>
+                    </div>
+                    <div class="w-3 h-3 rounded-full bg-blue-500 shadow-md shadow-blue-500/50"></div>
+                </div>
+            </div>
+
+            <!-- Container do Canvas -->
+            <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-2xl relative flex flex-col items-center justify-center">
+                <!-- Coordenadas no Canvas serão desenhadas internamente para precisão absoluta -->
+                <canvas id="checkers-canvas" width="600" height="600" class="w-full max-w-[560px] aspect-square rounded-lg shadow-inner cursor-pointer bg-slate-950"></canvas>
+                
+                <!-- Controles do Jogo de Tabuleiro -->
+                <div class="w-full flex flex-wrap justify-between gap-3 mt-4">
+                    <button id="btn-undo" class="flex-1 min-w-[120px] px-4 py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 rounded-xl font-semibold text-sm border border-slate-700 transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.334 4z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z"></path></svg>
+                        Desfazer Jogada
+                    </button>
+                    <button id="btn-reset" class="flex-1 min-w-[120px] px-4 py-2.5 bg-red-950/80 hover:bg-red-900 text-red-200 rounded-xl font-semibold text-sm border border-red-800/60 transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H17"></path></svg>
+                        Reiniciar Partida
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Coluna Direita: O Encoder de Códigos & Logs -->
+        <section class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- Painel Gerador de Criptografia (O Texto Codificado solicitado) -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-4 shadow-xl">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <h2 class="font-bold text-slate-200">Cadeia de Códigos Gerada</h2>
+                    </div>
+                    <button id="btn-copy" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 transition px-2.5 py-1 bg-indigo-950/50 rounded-lg border border-indigo-800/40">
+                        Copiar Cadeia
+                    </button>
+                </div>
+                
+                <!-- TextBox principal que vai acumulando o código conforme as jogadas -->
+                <textarea id="code-output" readonly class="w-full h-32 p-3 bg-slate-950 text-emerald-400 code-font rounded-xl border border-slate-800 focus:outline-none focus:border-indigo-500 transition text-sm resize-none" placeholder="Faça uma jogada no tabuleiro para codificar os dados aqui..."></textarea>
+                
+                <p class="text-[11px] text-slate-400 italic">Cada jogada adiciona um fragmento de código no formato acima, separado por hífens.</p>
+            </div>
+
+            <!-- Terminal do Histórico das Jogadas -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-3 flex-grow shadow-xl min-h-[250px]">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-bold text-slate-200 flex items-center gap-2">
+                        <span>📝 Histórico de Comandos</span>
+                    </h2>
+                    <button id="btn-clear-logs" class="text-xs text-slate-400 hover:text-slate-300 transition">
+                        Limpar Log
+                    </button>
+                </div>
+                
+                <div id="move-history-container" class="flex-grow overflow-y-auto bg-slate-950 rounded-xl p-3 border border-slate-800/80 max-h-[220px] code-font text-xs flex flex-col gap-1.5 text-slate-300">
+                    <div class="text-slate-500 italic">[Aguardando início do combate...]</div>
+                </div>
+            </div>
+
+            <!-- Dicionário do Encoder Integrado (Capacidade Máxima Gemini!) -->
+            <div class="bg-slate-900 border border-indigo-950/40 rounded-2xl p-5 shadow-xl">
+                <button id="btn-toggle-dict" class="w-full flex items-center justify-between font-bold text-slate-300">
+                    <span class="flex items-center gap-2">📖 Guia de Codificação Direcional</span>
+                    <span id="dict-chevron">▼</span>
+                </button>
+                
+                <div id="dict-content" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs transition-all duration-300">
+                    <!-- Normal -->
+                    <div class="p-3 rounded-lg bg-slate-950 border border-slate-800">
+                        <h3 class="text-amber-400 font-bold mb-1.5 uppercase tracking-wider">Peças Comuns</h3>
+                        <ul class="space-y-1 text-slate-300">
+                            <li><span class="text-indigo-400">🡵 Cima-Dir:</span> "santo duro amiga"</li>
+                            <li><span class="text-indigo-400">🡴 Cima-Esq:</span> "amiga, santo duro"</li>
+                            <li><span class="text-indigo-400">🡶 Baixo-Dir:</span> "santo duro, mano"</li>
+                            <li><span class="text-indigo-400">🡷 Baixo-Esq:</span> "mano, santo duro"</li>
+                        </ul>
+                    </div>
+                    <!-- Dama (Invertido com "Vei") -->
+                    <div class="p-3 rounded-lg bg-slate-950 border border-slate-800">
+                        <h3 class="text-emerald-400 font-bold mb-1.5 uppercase tracking-wider">Modo Dama (Crowned)</h3>
+                        <ul class="space-y-1 text-slate-300">
+                            <li><span class="text-indigo-400">🡵 Cima-Dir:</span> "vei santo duro amiga"</li>
+                            <li><span class="text-indigo-400">🡴 Cima-Esq:</span> "amiga santo duro vei"</li>
+                            <li><span class="text-indigo-400">🡶 Baixo-Dir:</span> "vei santo duro mano"</li>
+                            <li><span class="text-indigo-400">🡷 Baixo-Esq:</span> "mano santo duro vei"</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/80 bg-slate-950 py-4 px-6 text-center text-xs text-slate-500">
+        Desenvolvido com Engenharia Avançada & HTML Canvas. © 2026. Todos os direitos reservados.
+    </footer>
+
+    <!-- Notificações Flutuantes Integradas -->
+    <div id="toast" class="fixed bottom-6 right-6 px-4 py-3 bg-slate-800 text-slate-100 rounded-xl border border-indigo-500 shadow-2xl opacity-0 transition-opacity duration-300 pointer-events-none z-50 text-sm">
+        Mensagem da Central de Controle
+    </div>
+
+    <!-- Script de Jogo Completo -->
+    <script>
+        // --- INICIALIZAÇÃO DE ÁUDIO SINTETIZADO ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let soundEnabled = true;
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'move') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(320, now);
+                    osc.frequency.exponentialRampToValueAtTime(180, now + 0.12);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                    osc.start();
+                    osc.stop(now + 0.12);
+                } else if (type === 'capture') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.setValueAtTime(440, now + 0.08);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start();
+                    osc.stop(now + 0.25);
+                } else if (type === 'promo') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(261.63, now); // C4
+                    osc.frequency.setValueAtTime(329.63, now + 0.08); // E4
+                    osc.frequency.setValueAtTime(392.00, now + 0.16); // G4
+                    osc.frequency.setValueAtTime(523.25, now + 0.24); // C5
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+                    osc.start();
+                    osc.stop(now + 0.45);
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(120, now);
+                    osc.frequency.linearRampToValueAtTime(80, now + 0.2);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start();
+                    osc.stop(now + 0.25);
+                }
+            } catch(e) {
+                console.log("Falha no áudio:", e);
+            }
+        }
+
+        // --- SISTEMA DE TOAST ---
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            if (isError) {
+                toast.classList.remove('border-indigo-500');
+                toast.classList.add('border-red-500');
+            } else {
+                toast.classList.remove('border-red-500');
+                toast.classList.add('border-indigo-500');
+            }
+            toast.classList.remove('opacity-0');
+            toast.classList.add('opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0');
+            }, 2500);
+        }
+
+        // --- MOTOR DE DAMAS ---
+        const canvas = document.getElementById('checkers-canvas');
+        const ctx = canvas.getContext('2d');
+        const boardSize = 8;
+        const margin = 32; // Margem para coordenadas externas
+        let cellSize = (canvas.width - margin * 2) / boardSize;
+
+        // Estado do Jogo
+        let board = [];
+        let turn = 1; // 1 = Amiga (Vermelho/Baixo), 2 = Mano (Azul/Cima)
+        let selectedPiece = null;
+        let validMoves = [];
+        let gameHistory = []; // Para desfazer (Stack of states)
+        let codeSequence = []; // Lista de strings geradas
+        let forceContinueWith = null; // Para turnos de multi-jumps obrigatórios
+
+        // Inicializar Configurações do Jogo
+        function initGame() {
+            board = Array(boardSize).fill(null).map(() => Array(boardSize).fill(null));
+            
+            // Player 2 - Mano (Azul/Cima) nas 3 primeiras fileiras
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < boardSize; c++) {
+                    if ((r + c) % 2 === 1) {
+                        board[r][c] = { player: 2, isKing: false };
+                    }
+                }
+            }
+
+            // Player 1 - Amiga (Vermelho/Baixo) nas 3 últimas fileiras
+            for (let r = 5; r < boardSize; r++) {
+                for (let c = 0; c < boardSize; c++) {
+                    if ((r + c) % 2 === 1) {
+                        board[r][c] = { player: 1, isKing: false };
+                    }
+                }
+            }
+
+            turn = 1;
+            selectedPiece = null;
+            validMoves = [];
+            gameHistory = [];
+            codeSequence = [];
+            forceContinueWith = null;
+
+            updateStats();
+            renderBoard();
+            updateCodeOutput();
+            document.getElementById('move-history-container').innerHTML = `<div class="text-slate-500 italic">[Partida reiniciada. Aguardando movimentação...]</div>`;
+        }
+
+        // Salva estado atual para restaurar depois se preciso
+        function pushHistory() {
+            const state = {
+                board: JSON.parse(JSON.stringify(board)),
+                turn: turn,
+                codeSequence: [...codeSequence],
+                forceContinueWith: forceContinueWith ? { ...forceContinueWith } : null,
+                logsHTML: document.getElementById('move-history-container').innerHTML
+            };
+            gameHistory.push(state);
+        }
+
+        function undoMove() {
+            if (gameHistory.length === 0) {
+                showToast("Nenhuma jogada para desfazer!", true);
+                playSound('error');
+                return;
+            }
+            const previousState = gameHistory.pop();
+            board = previousState.board;
+            turn = previousState.turn;
+            codeSequence = previousState.codeSequence;
+            forceContinueWith = previousState.forceContinueWith;
+            document.getElementById('move-history-container').innerHTML = previousState.logsHTML;
+            
+            selectedPiece = null;
+            validMoves = [];
+            
+            updateStats();
+            renderBoard();
+            updateCodeOutput();
+            showToast("Jogada desfeita com sucesso.");
+            playSound('move');
+        }
+
+        // Atualiza a exibição de peças restantes
+        function updateStats() {
+            let p1 = 0, p2 = 0;
+            for (let r = 0; r < boardSize; r++) {
+                for (let c = 0; c < boardSize; c++) {
+                    if (board[r][c]) {
+                        if (board[r][c].player === 1) p1++;
+                        else p2++;
+                    }
+                }
+            }
+            document.getElementById('count-p1').textContent = `${p1} / 12`;
+            document.getElementById('count-p2').textContent = `${p2} / 12`;
+
+            const badge = document.getElementById('turn-badge');
+            if (turn === 1) {
+                badge.textContent = "Amiga (Vermelho)";
+                badge.className = "px-2.5 py-0.5 rounded text-xs font-bold bg-red-500 text-white shadow-lg shadow-red-500/20";
+            } else {
+                badge.textContent = "Mano (Azul)";
+                badge.className = "px-2.5 py-0.5 rounded text-xs font-bold bg-blue-500 text-white shadow-lg shadow-blue-500/20";
+            }
+        }
+
+        // --- ENCODER DE CÓDIGOS ---
+        // Retorna a string criptografada com base na direção da jogada e se a peça é Dama
+        function getMoveCode(startRow, startCol, targetRow, targetCol, isKing) {
+            const deltaRow = targetRow - startRow;
+            const deltaCol = targetCol - startCol;
+            const isUp = deltaRow < 0;
+            const isRight = deltaCol > 0;
+
+            if (!isKing) {
+                // Peças Comuns
+                if (isUp) {
+                    return isRight ? "santo duro amiga" : "amiga, santo duro";
+                } else {
+                    return isRight ? "santo duro, mano" : "mano, santo duro";
+                }
+            } else {
+                // Peças Dama (Invertidas e incorporando o "Vei")
+                if (isUp) {
+                    return isRight ? "vei santo duro amiga" : "amiga santo duro vei";
+                } else {
+                    return isRight ? "vei santo duro mano" : "mano santo duro vei";
+                }
+            }
+        }
+
+        function updateCodeOutput() {
+            const textarea = document.getElementById('code-output');
+            if (codeSequence.length === 0) {
+                textarea.value = "";
+                return;
+            }
+            textarea.value = codeSequence.join(" - ");
+            // Autoscroll para o final do textarea
+            textarea.scrollTop = textarea.scrollHeight;
+        }
+
+        // --- RENDERIZAÇÃO GRÁFICA DO CANVAS ---
+        function renderBoard() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Fundo da margem das coordenadas
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Borda elegante interna
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(margin - 2, margin - 2, canvas.width - margin * 2 + 4, canvas.height - margin * 2 + 4);
+
+            // 1. Desenhar Coordenadas Externas
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'bold 13px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+            for (let i = 0; i < boardSize; i++) {
+                const pos = margin + i * cellSize + cellSize / 2;
+                // Letras superiores e inferiores
+                ctx.fillText(letters[i], pos, margin / 2);
+                ctx.fillText(letters[i], pos, canvas.height - margin / 2);
+                
+                // Números esquerdo e direito (invertido, 8 no topo, 1 em baixo)
+                ctx.fillText((8 - i).toString(), margin / 2, pos);
+                ctx.fillText((8 - i).toString(), canvas.width - margin / 2, pos);
+            }
+
+            // 2. Desenhar as Quadrículas (Tabuleiro)
+            for (let r = 0; r < boardSize; r++) {
+                for (let c = 0; c < boardSize; c++) {
+                    const x = margin + c * cellSize;
+                    const y = margin + r * cellSize;
+                    const isDark = (r + c) % 2 === 1;
+
+                    ctx.fillStyle = isDark ? '#1e293b' : '#f1f5f9';
+                    ctx.fillRect(x, y, cellSize, cellSize);
+
+                    // Bordas sutis de detalhe nas casas escuras
+                    if (isDark) {
+                        ctx.strokeStyle = '#111827';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(x, y, cellSize, cellSize);
+                    }
+                }
+            }
+
+            // 3. Highlight de Casas de Movimentação Válidas
+            validMoves.forEach(move => {
+                const x = margin + move.col * cellSize;
+                const y = margin + move.row * cellSize;
+                
+                // Gradiente luminoso para destacar caminhos possíveis
+                ctx.save();
+                ctx.globalAlpha = 0.45;
+                if (move.type === 'capture') {
+                    ctx.fillStyle = '#10b981'; // Verde para capturas
+                } else {
+                    ctx.fillStyle = '#3b82f6'; // Azul para movimentos normais
+                }
+                ctx.fillRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
+                
+                ctx.strokeStyle = move.type === 'capture' ? '#34d399' : '#60a5fa';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
+                ctx.restore();
+            });
+
+            // 4. Highlight da peça atualmente selecionada
+            if (selectedPiece) {
+                const sx = margin + selectedPiece.col * cellSize;
+                const sy = margin + selectedPiece.row * cellSize;
+                ctx.save();
+                ctx.strokeStyle = '#f59e0b'; // Gold Glow
+                ctx.lineWidth = 4;
+                ctx.strokeRect(sx + 3, sy + 3, cellSize - 6, cellSize - 6);
+                ctx.restore();
+            }
+
+            // 5. Desenhar Peças no Tabuleiro
+            for (let r = 0; r < boardSize; r++) {
+                for (let c = 0; c < boardSize; c++) {
+                    const piece = board[r][c];
+                    if (piece) {
+                        const cx = margin + c * cellSize + cellSize / 2;
+                        const cy = margin + r * cellSize + cellSize / 2;
+                        const radius = cellSize * 0.38;
+
+                        drawPiece3D(ctx, cx, cy, radius, piece);
+                    }
+                }
+            }
+        }
+
+        // Desenha peças elegantes com efeito de relevo e reflexo 3D
+        function drawPiece3D(ctx, x, y, r, piece) {
+            ctx.save();
+
+            // Sombra projetada
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+            ctx.shadowBlur = 8;
+            ctx.shadowOffsetY = 5;
+
+            // Paleta de Cores de acordo com Jogador
+            let primaryColor = piece.player === 1 ? '#dc2626' : '#2563eb'; // Vermelho ou Azul
+            let accentColor = piece.player === 1 ? '#ef4444' : '#3b82f6';
+            let darkEdge = piece.player === 1 ? '#7f1d1d' : '#1e3a8a';
+
+            // Corpo externo base da peça
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            const baseGrad = ctx.createRadialGradient(x - r/4, y - r/4, r/5, x, y, r);
+            baseGrad.addColorStop(0, accentColor);
+            baseGrad.addColorStop(0.8, primaryColor);
+            baseGrad.addColorStop(1, darkEdge);
+            ctx.fillStyle = baseGrad;
+            ctx.fill();
+
+            // Bordas e estrias concêntricas ornamentais (Efeito de ranhuras físicas da peça de damas)
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 2;
+            
+            ctx.beginPath();
+            ctx.arc(x, y, r * 0.75, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(x, y, r * 0.5, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Brilho de reflexo da luz
+            const glossGrad = ctx.createRadialGradient(x - r/3, y - r/3, 1, x - r/3, y - r/3, r*0.5);
+            glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+            glossGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = glossGrad;
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Se for Dama, desenhar uma coroa dourada detalhada no centro
+            if (piece.isKing) {
+                drawCrown(ctx, x, y, r * 1.1);
+            }
+
+            ctx.restore();
+        }
+
+        // Desenha uma coroa com vetores e joias simuladas
+        function drawCrown(ctx, x, y, size) {
+            ctx.save();
+            ctx.fillStyle = '#f59e0b'; // Gold
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 1.5;
+            
+            // Desenho do corpo da coroa
+            ctx.beginPath();
+            ctx.moveTo(x - size * 0.35, y + size * 0.25);
+            ctx.lineTo(x - size * 0.42, y - size * 0.1);
+            ctx.lineTo(x - size * 0.2, y + size * 0.05);
+            ctx.lineTo(x, y - size * 0.35); // Pico central
+            ctx.lineTo(x + size * 0.2, y + size * 0.05);
+            ctx.lineTo(x + size * 0.42, y - size * 0.1);
+            ctx.lineTo(x + size * 0.35, y + size * 0.25);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Detalhe de joias vermelhas nos picos
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath();
+            ctx.arc(x, y - size * 0.35, size * 0.06, 0, Math.PI * 2); // Central
+            ctx.arc(x - size * 0.42, y - size * 0.1, size * 0.05, 0, Math.PI * 2); // Esquerdo
+            ctx.arc(x + size * 0.42, y - size * 0.1, size * 0.05, 0, Math.PI * 2); // Direito
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // --- SISTEMA DE LOGICA & VALIDAÇÃO DE JOGADAS (DAMAS) ---
+
+        // Retorna todos os movimentos válidos para a peça na célula correspondente
+        function getValidMovesForCell(row, col) {
+            const piece = board[row][col];
+            if (!piece) return [];
+            
+            const moves = [];
+            // Direções diagonais
+            const directions = [
+                { dr: -1, dc: -1 }, // Cima-Esquerda
+                { dr: -1, dc: 1 },  // Cima-Direita
+                { dr: 1, dc: -1 },  // Baixo-Esquerda
+                { dr: 1, dc: 1 }    // Baixo-Direita
+            ];
+
+            if (!piece.isKing) {
+                // PEÇA COMUM
+                directions.forEach(dir => {
+                    const targetR = row + dir.dr;
+                    const targetC = col + dir.dc;
+
+                    // Movimento simples padrão (Só avançam para frente do ponto de vista do seu player)
+                    // Player 1 (Amiga/Baixo) só sobe (dr < 0). Player 2 (Mano/Cima) só desce (dr > 0)
+                    const isForward = (piece.player === 1 && dir.dr < 0) || (piece.player === 2 && dir.dr > 0);
+
+                    if (targetR >= 0 && targetR < boardSize && targetC >= 0 && targetC < boardSize) {
+                        if (isForward && !board[targetR][targetC]) {
+                            // Só adicionamos movimento comum se não houver um multi-jump pendente em andamento
+                            if (!forceContinueWith) {
+                                moves.push({
+                                    row: targetR,
+                                    col: targetC,
+                                    type: 'normal',
+                                    jumped: null
+                                });
+                            }
+                        }
+
+                        // CAPTURAS (Podem capturar para qualquer direção, mesmo para trás)
+                        const landR = row + dir.dr * 2;
+                        const landC = col + dir.dc * 2;
+                        if (landR >= 0 && landR < boardSize && landC >= 0 && landC < boardSize) {
+                            const obstacle = board[targetR][targetC];
+                            const destination = board[landR][landC];
+                            if (obstacle && obstacle.player !== piece.player && !destination) {
+                                moves.push({
+                                    row: landR,
+                                    col: landC,
+                                    type: 'capture',
+                                    jumped: { row: targetR, col: targetC }
+                                });
+                            }
+                        }
+                    }
+                });
+            } else {
+                // MODO DAMA VOADORA (Regras oficiais brasileiras/internacionais)
+                // Pode voar qualquer distância de casas vazias, capturando no caminho
+                directions.forEach(dir => {
+                    let r = row + dir.dr;
+                    let c = col + dir.dc;
+                    let opponentSeen = null;
+
+                    while (r >= 0 && r < boardSize && c >= 0 && c < boardSize) {
+                        const cell = board[r][c];
+
+                        if (!opponentSeen) {
+                            if (!cell) {
+                                // Casa vazia na rota da Dama
+                                if (!forceContinueWith) {
+                                    moves.push({
+                                        row: r,
+                                        col: c,
+                                        type: 'normal',
+                                        jumped: null
+                                    });
+                                }
+                            } else if (cell.player === piece.player) {
+                                // Bloqueado por peça amiga
+                                break;
+                            } else {
+                                // Peça oponente - potencial pulo
+                                opponentSeen = { row: r, col: c };
+                            }
+                        } else {
+                            // Passamos por uma peça oponente, agora procuramos o ponto de descida vazio
+                            if (!cell) {
+                                moves.push({
+                                    row: r,
+                                    col: c,
+                                    type: 'capture',
+                                    jumped: { row: opponentSeen.row, col: opponentSeen.col }
+                                });
+                            } else {
+                                // Outra peça bloqueando o pouso do pulo
+                                break;
+                            }
+                        }
+                        r += dir.dr;
+                        c += dir.dc;
+                    }
+                });
+            }
+
+            return moves;
+        }
+
+        // Verifica se há alguma captura disponível para o jogador ativo em todo o tabuleiro
+        // (Isso é crucial se quisermos forçar captura obrigatória, regra real do jogo)
+        function getAllCapturesForPlayer(p) {
+            const captures = [];
+            for (let r = 0; r < boardSize; r++) {
+                for (let c = 0; c < boardSize; c++) {
+                    const piece = board[r][c];
+                    if (piece && piece.player === p) {
+                        const moves = getValidMovesForCell(r, c);
+                        const caps = moves.filter(m => m.type === 'capture');
+                        if (caps.length > 0) {
+                            captures.push({ from: { row: r, col: c }, moves: caps });
+                        }
+                    }
+                }
+            }
+            return captures;
+        }
+
+        // Converte coordenadas numéricas para strings estilo Xadrez (Ex: A3, D6)
+        function toChessCoord(row, col) {
+            const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+            return `${letters[col]}${8 - row}`;
+        }
+
+        // --- MANIPULAÇÃO DE CLIQUES E ENTRADA MOUSE ---
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            // Calcular fator de escala caso o canvas esteja redimensionado no HTML
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            const clickX = (e.clientX - rect.left) * scaleX;
+            const clickY = (e.clientY - rect.top) * scaleY;
+
+            // Verificar se o clique foi na área do jogo (descontando as margens)
+            if (clickX < margin || clickX > canvas.width - margin || clickY < margin || clickY > canvas.height - margin) {
+                return;
+            }
+
+            const col = Math.floor((clickX - margin) / cellSize);
+            const row = Math.floor((clickY - margin) / cellSize);
+
+            handleBoardSelection(row, col);
+        });
+
+        function handleBoardSelection(row, col) {
+            const piece = board[row][col];
+
+            // Se uma jogada de captura em cadeia está pendente, o jogador só pode mover aquela peça específica
+            if (forceContinueWith) {
+                if (row === forceContinueWith.row && col === forceContinueWith.col) {
+                    selectedPiece = { row, col };
+                    validMoves = getValidMovesForCell(row, col).filter(m => m.type === 'capture');
+                    renderBoard();
+                } else {
+                    showToast("Captura em andamento! Você deve continuar operando a peça destacada.", true);
+                    playSound('error');
+                }
+                return;
+            }
+
+            // Selecionar nova peça
+            if (piece && piece.player === turn) {
+                selectedPiece = { row, col };
+                
+                // Se o jogador tiver capturas disponíveis em algum lugar do tabuleiro, as regras de damas obrigam capturar.
+                // Mas, para fins didáticos/amigáveis, vamos destacar se houver capturas, mas permitir movimentos livres 
+                // se a regra simplificada for desejada. Vamos implementar o destaque de captura prioritária inteligente.
+                const allCaps = getAllCapturesForPlayer(turn);
+                const originalMoves = getValidMovesForCell(row, col);
+                
+                if (allCaps.length > 0) {
+                    // Há capturas obrigatórias no tabuleiro. O jogador deve priorizar uma captura.
+                    const thisPieceHasCap = allCaps.some(cap => cap.from.row === row && cap.from.col === col);
+                    if (thisPieceHasCap) {
+                        validMoves = originalMoves.filter(m => m.type === 'capture');
+                        showToast("Captura detectada! Execute-a obrigatoriamente.");
+                    } else {
+                        // Se clicar em uma peça que não pode capturar, mas outra dele pode
+                        validMoves = [];
+                        showToast("Você tem capturas disponíveis com outra peça!", true);
+                        playSound('error');
+                    }
+                } else {
+                    validMoves = originalMoves;
+                }
+
+                renderBoard();
+                return;
+            }
+
+            // Tentar executar movimento se clicou em uma casa de movimento ativa
+            if (selectedPiece) {
+                const matchedMove = validMoves.find(m => m.row === row && m.col === col);
+                if (matchedMove) {
+                    executeMove(selectedPiece.row, selectedPiece.col, row, col, matchedMove);
+                } else {
+                    // Cancelar seleção se clicar em casa vazia ou inválida
+                    selectedPiece = null;
+                    validMoves = [];
+                    renderBoard();
+                }
+            }
+        }
+
+        // Executa fisicamente e logicamente a jogada
+        function executeMove(fromRow, fromCol, toRow, toCol, move) {
+            pushHistory(); // Guardar ponto de restauração seguro
+
+            const piece = board[fromRow][fromCol];
+            const wasKing = piece.isKing;
+            
+            // Gerar o código direcional exato correspondente a essa movimentação
+            const encoderCode = getMoveCode(fromRow, fromCol, toRow, toCol, wasKing);
+            codeSequence.push(encoderCode);
+
+            // Log de histórico no console lateral
+            const startCoord = toChessCoord(fromRow, fromCol);
+            const endCoord = toChessCoord(toRow, toCol);
+            const activeName = turn === 1 ? "Amiga" : "Mano";
+            const pColor = turn === 1 ? "text-red-400" : "text-blue-400";
+            const detailText = wasKing ? "👑 Dama" : "Peça";
+
+            const logElement = document.createElement('div');
+            logElement.className = "py-1 border-b border-slate-800/50 hover:bg-slate-900 transition px-1";
+            logElement.innerHTML = `
+                <span class="${pColor} font-bold">[${activeName}]</span> 
+                <span>${detailText} ${startCoord}➔${endCoord}</span>
+                <span class="text-emerald-500 font-semibold block text-[10px] mt-0.5">📟 "${encoderCode}"</span>
+            `;
+            
+            const historyContainer = document.getElementById('move-history-container');
+            if (historyContainer.querySelector('.text-slate-500')) {
+                historyContainer.innerHTML = ""; // Limpa texto de aguardando
+            }
+            historyContainer.appendChild(logElement);
+            historyContainer.scrollTop = historyContainer.scrollHeight;
+
+            // Executar movimento lógico
+            board[toRow][toCol] = piece;
+            board[fromRow][fromCol] = null;
+
+            // Tratamento se for CAPTURA
+            let capOccurred = false;
+            if (move.type === 'capture' && move.jumped) {
+                board[move.jumped.row][move.jumped.col] = null; // Remove oponente
+                capOccurred = true;
+                playSound('capture');
+            } else {
+                playSound('move');
+            }
+
+            // PROMOÇÃO DE DAMA
+            // Amiga (P1) promove ao atingir fileira 0. Mano (P2) ao atingir fileira 7.
+            let promoted = false;
+            if (!wasKing) {
+                if ((piece.player === 1 && toRow === 0) || (piece.player === 2 && toRow === 7)) {
+                    board[toRow][toCol].isKing = true;
+                    promoted = true;
+                    playSound('promo');
+                    showToast(`A peça do jogador ${activeName} coroou uma Dama! 👑`);
+                }
+            }
+
+            // Atualização do Editor e Logs de texto
+            updateCodeOutput();
+            updateStats();
+
+            // Lógica de Multi-Jump (Capturas encadeadas na mesma jogada)
+            if (capOccurred && !promoted) {
+                // Checar se a peça que acabou de pular possui novas capturas possíveis
+                const consecutiveMoves = getValidMovesForCell(toRow, toCol).filter(m => m.type === 'capture');
+                if (consecutiveMoves.length > 0) {
+                    forceContinueWith = { row: toRow, col: toCol };
+                    selectedPiece = { row: toRow, col: toCol };
+                    validMoves = consecutiveMoves;
+                    renderBoard();
+                    showToast("Multi-captura disponível! Faça o próximo salto.");
+                    return;
+                }
+            }
+
+            // Resetar estados de turno e alternar jogador ativo se a cadeia de capturas terminou
+            forceContinueWith = null;
+            selectedPiece = null;
+            validMoves = [];
+            turn = turn === 1 ? 2 : 1;
+
+            renderBoard();
+            updateStats();
+        }
+
+        // --- SISTEMA INTERATIVO DE DICIONÁRIO E EXPANSÕES ---
+        const btnToggleDict = document.getElementById('btn-toggle-dict');
+        const dictContent = document.getElementById('dict-content');
+        const dictChevron = document.getElementById('dict-chevron');
+        
+        btnToggleDict.addEventListener('click', () => {
+            const isHidden = dictContent.classList.contains('hidden');
+            if (isHidden) {
+                dictContent.classList.remove('hidden');
+                dictChevron.textContent = "▲";
+            } else {
+                dictContent.classList.add('hidden');
+                dictChevron.textContent = "▼";
+            }
+        });
+
+        // Configuração de Som Ativo/Mudo
+        const btnSound = document.getElementById('btn-sound');
+        btnSound.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            if (soundEnabled) {
+                btnSound.textContent = "🔊 Som Ativo";
+                btnSound.className = "p-2 bg-slate-800 hover:bg-slate-700 text-indigo-400 rounded-lg border border-slate-700 transition";
+                playSound('move');
+            } else {
+                btnSound.textContent = "🔇 Som Mudo";
+                btnSound.className = "p-2 bg-slate-900 text-slate-500 rounded-lg border border-slate-800 transition";
+            }
+        });
+
+        // Copiar Cadeia de Código
+        document.getElementById('btn-copy').addEventListener('click', () => {
+            const textToCopy = document.getElementById('code-output').value;
+            if (!textToCopy) {
+                showToast("Não há códigos para copiar!", true);
+                playSound('error');
+                return;
+            }
+            
+            // Fallback robusto conforme as especificações fornecidas
+            const tempInput = document.createElement("input");
+            tempInput.value = textToCopy;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+
+            showToast("Cadeia criptográfica copiada com sucesso!");
+            playSound('promo');
+        });
+
+        // Limpar logs e reiniciar encoder
+        document.getElementById('btn-clear-logs').addEventListener('click', () => {
+            if(confirm("Tem certeza que deseja limpar o histórico de logs? Os códigos gerados no painel superior serão mantidos.")) {
+                document.getElementById('move-history-container').innerHTML = `<div class="text-slate-500 italic">[Logs limpos. Aguardando movimentação...]</div>`;
+                showToast("Logs limpos.");
+            }
+        });
+
+        // Eventos gerais do Jogo
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            if(confirm("Reiniciar a partida e zerar todos os códigos gerados?")) {
+                initGame();
+                showToast("Damas reiniciadas!");
+            }
+        });
+        document.getElementById('btn-undo').addEventListener('click', undoMove);
+
+        // Ajustar redimensionamento do canvas para manter nitidez impecável
+        function resizeHandler() {
+            // Se necessário adicionar lógica de controle interno de aspect-ratio no canvas
+            renderBoard();
+        }
+        window.addEventListener('resize', resizeHandler);
+
+        // Inicialização total ao carregar
+        window.onload = function() {
+            initGame();
+        };
+
+    </script>
+</body>
+</html>
